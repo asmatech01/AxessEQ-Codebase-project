@@ -4,13 +4,13 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import "../Styling/RepoFiles.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
+import { faTrashAlt, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { faFile } from "@fortawesome/free-regular-svg-icons";
 import ProgressBar from "@ramonak/react-progress-bar";
 import AOS from "aos";
 import "aos/dist/aos.css"; // Import AOS CSS for styling
 import Swal from "sweetalert2";
-
+import { BallTriangle } from "react-loader-spinner";
 import { UseSelector, useDispatch, useSelector } from "react-redux";
 import {
   getAllFolders,
@@ -18,7 +18,6 @@ import {
   deletefolder,
 } from "../actions/folders.action";
 import { setFileData } from "../actions/fileData";
-import {getAllRecentlyRepository} from '../actions/repository.action'
 AOS.init({
   duration: 1000, // Animation duration in milliseconds
   once: false, // Whether the animation should only happen once
@@ -94,13 +93,13 @@ function RepoFiles() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const contentData = useSelector((state) => state.content.contents);
+  const loading = useSelector((state) => state.content.loading);
   const progressData = useSelector((state) => state.content.progress);
-  const uploadStatus = useSelector((state) => state.content.uploading)
-  const uploadedStatus = useSelector((state) => state.content.uploaded)
-  console.log(uploadStatus)
-  console.log(uploadedStatus)
+  const uploadStatus = useSelector((state) => state.content.uploading);
+  const uploadedStatus = useSelector((state) => state.content.uploaded);
+  // console.log("Here is loading", loading);
   // useEffect(() => {
-  //   dispatch(getAllRecentlyRepository());
+  //   dispatch(getAllFolders());
   // }, [dispatch]);
   useEffect(() => {
     // Find the content associated with the provided repoId
@@ -195,13 +194,10 @@ function RepoFiles() {
   };
   const handleImportButtonClick = async () => {
     try {
-      const response = await axios.post(
-        "/fetch-repo-contents",
-        {
-          repositoryNames: githubRepoName,
-          repositoryId: repoId,
-        }
-      );
+      const response = await axios.post("/fetch-repo-contents", {
+        repositoryNames: githubRepoName,
+        repositoryId: repoId,
+      });
       console.log(repoId);
       console.log(response.data);
       // You can add further handling here if needed
@@ -272,42 +268,66 @@ function RepoFiles() {
               </button>
             </div>
           </div>
-          <div>
-            {folderData === null ? (
-              <p className="nocode-para">Loading...</p>
-            ) : folderData.length === 0 ? (
-              <div>
+          {loading  ? (
+            // Show loader while fetching folder data
+            <div className="loader">
+            <BallTriangle
+              height={100}
+              width={100}
+              radius={5}
+              color="#4fa94d"
+              ariaLabel="ball-triangle-loading"
+              wrapperClass={{}}
+              wrapperStyle=""
+              visible={true}
+            />
+          </div>
+          ) : (
+     
+     
+     <div className="nocode-main">
+              {folderData === null ? (
+                <p className="nocode-para">Loading...</p>
+              ) : 
+              folderData.length === 0 ? (
+                <div className="">
                 <p className="nocode-para">
                   No code files available for this repository.
                 </p>
                 <div>
-                  <h1>Upload Files</h1>
-                  <input type="file" onChange={handleFileChange} />
-                  <button onClick={handleUpload}>Upload</button>
+                  <h1 className="uploadfile-head">Upload Your Files Here :</h1>
+                  <div className="upload-man2">
+                  <input type="file" onChange={handleFileChange} className="upload-file"/>
+                  <button onClick={handleUpload} className="upload-btn">Upload<FontAwesomeIcon icon={faUpload} className="upload-icon"/></button>        
+                  </div>
                 </div>
               </div>
-            ) : (
-              // Render the hierarchy here, you may use a recursive function
-              <div>
-                <ul className="code-files-list">
-                  {renderFolderHierarchy(folderData)}
-                </ul>
-              </div>
-            )}
-               {/* Add the ProgressBar component with appropriate props */}
-          {/* Progress bar should be visible when an upload is in progress */}
-          
-          {selectedFile && (
-            <h2>{uploadStatus === true ? "file uploading..." : ""}{uploadedStatus === true ? "file uploaded Succesfully" : ""}</h2>
+              ) : (
+                // Render the hierarchy here, you may use a recursive function
+                <div>
+                  <ul className="code-files-list">
+                    {renderFolderHierarchy(folderData)}
+                  </ul>
+                </div>
+              )}
+              {/* Add the ProgressBar component with appropriate props */}
+              {/* Progress bar should be visible when an upload is in progress */}
+
+              {selectedFile && (
+                <h2 className="upload-succes-head">
+                  {uploadStatus === true ? "file uploading..." : ""}
+                  {uploadedStatus === true ? "file uploaded Succesfully" : ""}
+                </h2>
+              )}
+              {selectedFile && (
+                <ProgressBar
+                  completed={progressData}
+                  height="25px"
+                  bgColor="#007bff"
+                />
+              )}
+            </div>
           )}
-          {selectedFile && (
-            <ProgressBar
-              completed={progressData}
-              height="25px" 
-              bgColor="#007bff"
-            />
-          )}
-          </div>
         </div>
         <div className="code-file2" data-aos="zoom-in">
           <p className="languages-p" data-aos="fade-up">

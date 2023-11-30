@@ -21,6 +21,7 @@ import { folderDataConstant } from "../actions/constant";
 
 const initialState = {
   contents: [],
+  loading: false,
   uploading: false, // Indicates whether an upload is in progress
   uploaded: false, // Indicates if the upload was successful
   error: null, // Holds any error message in case of failure
@@ -29,10 +30,23 @@ const initialState = {
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case folderDataConstant.GET_FOLDERS_Request:
+      return {
+        ...state,
+        loading: true,
+        uploaded: false,
+      };
     case folderDataConstant.GET_FOLDERS_SUCCESS:
       return {
         ...state,
+        loading: false,
         contents: action.payload.contents,
+      };
+    case folderDataConstant.GET_FOLDERS_FAILED:
+      return {
+        ...state,
+        loading: false,
+        error: "Failed to fetch folders",
       };
 
     case folderDataConstant.ADD_FOLDERS_Request:

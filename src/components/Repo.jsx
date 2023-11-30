@@ -10,9 +10,14 @@ import { faCodeBranch } from "@fortawesome/free-solid-svg-icons";
 import AOS from "aos";
 import "aos/dist/aos.css"; // Import AOS CSS for styling
 import Swal from "sweetalert2";
+import { BallTriangle } from "react-loader-spinner";
 
 import { useSelector, useDispatch } from "react-redux";
-import { getAllRepository, DeleteContent, recentlyOpen } from "../actions/repository.action";
+import {
+  getAllRepository,
+  DeleteContent,
+  recentlyOpen,
+} from "../actions/repository.action";
 function Repo({ showNavbar = true }) {
   AOS.init({
     duration: 1000, // Animation duration in milliseconds
@@ -23,7 +28,8 @@ function Repo({ showNavbar = true }) {
   const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useDispatch();
   const repositories = useSelector((state) => state.repository.repositories);
-
+  const loading = useSelector((state => state.repository.loading))
+  console.log("here is repository loader" , loading)
   const loadMoreRepositories = () => {
     setVisibleRepositories((prevVisible) => prevVisible + 6);
   };
@@ -59,7 +65,7 @@ function Repo({ showNavbar = true }) {
 
   const openRepository = async (repoId) => {
     try {
-     dispatch(recentlyOpen(repoId))
+      dispatch(recentlyOpen(repoId));
     } catch (error) {
       console.error(error);
     }
@@ -78,6 +84,7 @@ function Repo({ showNavbar = true }) {
     <div className="repo-main">
       {showNavbar && <Navbar />}
       <Repositorylist />
+
       <div className="repo-container">
         <h2 data-aos="zoom-in">Repositories</h2>
         <div className="search">
@@ -100,7 +107,21 @@ function Repo({ showNavbar = true }) {
           </div>
         </div>
         <ul className="repo-list">
-          {filteredRepositories && filteredRepositories.length > 0
+         {loading == true ? (
+           <div className="loader">
+           <BallTriangle
+             height={100}
+             width={100}
+             radius={5}
+             color="#4fa94d"
+             ariaLabel="ball-triangle-loading"
+             wrapperClass={{}}
+             wrapperStyle=""
+             visible={true}
+           />
+         </div>
+         ) : (
+          filteredRepositories && filteredRepositories.length > 0
             ? filteredRepositories.slice(0, visibleRepositories).map((repo) => (
                 <li className="repo-item" key={repo._id}>
                   <div data-aos="fade-down" className="trash-delete">
@@ -124,7 +145,10 @@ function Repo({ showNavbar = true }) {
                   </div>
                 </li>
               ))
-            : null}
+            : (<p>Now repository found</p>)
+         )
+         }
+         
         </ul>
         {visibleRepositories < filteredRepositories.length && (
           <button className="view-more-btn" onClick={loadMoreRepositories}>
